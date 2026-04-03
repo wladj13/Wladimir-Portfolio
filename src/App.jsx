@@ -48,6 +48,68 @@ function CustomCursor() {
 }
 
 function App() {
+  const [formData, setFormData] = React.useState({
+    nombre: '',
+    email: '',
+    tipoProblema: 'Redes / Telecom',
+    descripcion: '',
+    presupuesto: '$500 - $1,500',
+    timeline: ''
+  });
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleFormSubmit = async (e) => {
+    e.preventDefault();
+    if (!formData.nombre || !formData.email || !formData.descripcion) {
+      alert('Por favor, completa al menos tu nombre, correo y la descripción del desafío.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    
+    try {
+      const res = await fetch("https://formsubmit.co/ajax/contacto@wladimiralbarran.me", {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: JSON.stringify({
+          nombre: formData.nombre,
+          correo: formData.email,
+          tipoProblema: formData.tipoProblema,
+          descripcion: formData.descripcion,
+          presupuesto: formData.presupuesto,
+          timeline: formData.timeline,
+          _subject: `Nuevo Desafío Técnico de: ${formData.nombre}`
+        })
+      });
+      
+      if (res.ok) {
+        alert("¡Mensaje enviado con éxito! Nos pondremos en contacto pronto.");
+        setFormData({
+          nombre: '',
+          email: '',
+          tipoProblema: 'Redes / Telecom',
+          descripcion: '',
+          presupuesto: '$500 - $1,500',
+          timeline: ''
+        });
+      } else {
+        alert("Hubo un error al enviar el mensaje. Por favor revisa tu conexión e inténtalo de nuevo.");
+      }
+    } catch (error) {
+      alert("Error de conexión al enviar el formulario.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="bg-background text-on-background font-body selection:bg-primary/30 selection:text-primary min-h-screen cursor-default">
       <CustomCursor />
@@ -331,30 +393,34 @@ function App() {
             </motion.div>
             
             <motion.div variants={fadeUp} className="glass-panel p-10">
-              <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+              <form className="space-y-6" onSubmit={handleFormSubmit}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-2">Nombre</label>
-                    <input className="w-full bg-surface-container-highest border-none focus:ring-1 focus:ring-primary py-3 px-4 text-on-surface outline-none" type="text" />
+                    <input name="nombre" value={formData.nombre} onChange={handleInputChange} className="w-full bg-surface-container-highest border-none focus:ring-1 focus:ring-primary py-3 px-4 text-on-surface outline-none" type="text" placeholder="Tu nombre" required />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-2">Tipo de Problema</label>
-                    <select className="w-full bg-surface-container-highest border-none focus:ring-1 focus:ring-primary py-3 px-4 text-on-surface outline-none">
-                      <option>Redes / Telecom</option>
-                      <option>Software a Medida</option>
-                      <option>Automatización / IA</option>
-                      <option>Consultoría General</option>
-                    </select>
+                    <label className="block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-2">Correo Electrónico</label>
+                    <input name="email" type="email" value={formData.email} onChange={handleInputChange} className="w-full bg-surface-container-highest border-none focus:ring-1 focus:ring-primary py-3 px-4 text-on-surface outline-none" placeholder="tu@correo.com" required />
                   </div>
                 </div>
                 <div>
+                  <label className="block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-2">Tipo de Problema</label>
+                  <select name="tipoProblema" value={formData.tipoProblema} onChange={handleInputChange} className="w-full bg-surface-container-highest border-none focus:ring-1 focus:ring-primary py-3 px-4 text-on-surface outline-none">
+                    <option>Redes / Telecom</option>
+                    <option>Software a Medida</option>
+                    <option>Automatización / IA</option>
+                    <option>Consultoría General</option>
+                  </select>
+                </div>
+                <div>
                   <label className="block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-2">Descripción del Desafío</label>
-                  <textarea className="w-full bg-surface-container-highest border-none focus:ring-1 focus:ring-primary py-3 px-4 text-on-surface outline-none" rows="4"></textarea>
+                  <textarea name="descripcion" value={formData.descripcion} onChange={handleInputChange} className="w-full bg-surface-container-highest border-none focus:ring-1 focus:ring-primary py-3 px-4 text-on-surface outline-none" rows="4" placeholder="Describe brevemente el desafío..." required></textarea>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-2">Presupuesto Estimado</label>
-                    <select className="w-full bg-surface-container-highest border-none focus:ring-1 focus:ring-primary py-3 px-4 text-on-surface outline-none">
+                    <select name="presupuesto" value={formData.presupuesto} onChange={handleInputChange} className="w-full bg-surface-container-highest border-none focus:ring-1 focus:ring-primary py-3 px-4 text-on-surface outline-none">
                       <option>$500 - $1,500</option>
                       <option>$1,500 - $5,000</option>
                       <option>$5,000+</option>
@@ -362,10 +428,12 @@ function App() {
                   </div>
                   <div>
                     <label className="block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-2">Timeline</label>
-                    <input className="w-full bg-surface-container-highest border-none focus:ring-1 focus:ring-primary py-3 px-4 text-on-surface outline-none" placeholder="e.g. 1 mes" type="text" />
+                    <input name="timeline" value={formData.timeline} onChange={handleInputChange} className="w-full bg-surface-container-highest border-none focus:ring-1 focus:ring-primary py-3 px-4 text-on-surface outline-none" placeholder="e.g. 1 mes" type="text" />
                   </div>
                 </div>
-                <button className="w-full py-4 bg-secondary text-white font-bold uppercase tracking-widest hover:brightness-110 transition-all cursor-pointer">Enviar Desafío</button>
+                <button type="submit" disabled={isSubmitting} className="w-full py-4 bg-secondary text-white font-bold uppercase tracking-widest hover:brightness-110 transition-all cursor-pointer disabled:opacity-50">
+                  {isSubmitting ? 'Enviando...' : 'Enviar Desafío'}
+                </button>
               </form>
             </motion.div>
           </div>
